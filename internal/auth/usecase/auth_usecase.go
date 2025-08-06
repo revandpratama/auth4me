@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/revandpratama/auth4me/internal/auth/dto"
 	"github.com/revandpratama/auth4me/internal/auth/entity"
@@ -45,7 +46,7 @@ func (u *authUsecase) Login(email string, password string) (string, error) {
 		return "", err
 	}
 
-	return token, nil
+	return fmt.Sprintf("Bearer %s", token), nil
 }
 
 func (u *authUsecase) Register(registerRequest *dto.RegisterRequest) error {
