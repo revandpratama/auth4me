@@ -23,7 +23,7 @@ func WithDB() Option {
 
 		db, err := gorm.Open(postgres.New(postgres.Config{
 			DSN: dataSourceName,
-			// PreferSimpleProtocol: true,
+			PreferSimpleProtocol: true,
 		}), &gorm.Config{})
 		if err != nil {
 			return err
