@@ -5,6 +5,7 @@ import (
 	"github.com/revandpratama/auth4me/internal/auth/handler"
 	"github.com/revandpratama/auth4me/internal/auth/repository"
 	"github.com/revandpratama/auth4me/internal/auth/usecase"
+	"github.com/revandpratama/auth4me/internal/middleware"
 	"gorm.io/gorm"
 )
 
@@ -20,8 +21,8 @@ func InitAuthRoutes(api fiber.Router, handler handler.AuthHandler) {
 	auth.Post("/login", handler.LoginHandler)
 	auth.Post("/register", handler.RegisterHandler)
 	auth.Post("/logout", handler.LogoutHandler)
-	
-	// auth.Use()
-	// auth.Get("/user", handler.GetUserHandler)
+
+	auth.Use(middleware.AuthMiddleware())
+	auth.Get("/user", handler.GetUserHandler)
 
 }
