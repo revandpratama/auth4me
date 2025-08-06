@@ -32,6 +32,11 @@ func (a *App) Stop() error {
 	if err := a.fiberApp.ShutdownWithContext(ctx); err != nil {
 		return err
 	}
-	
+
+	sqlDb, _ := a.DB.DB()
+	if err := sqlDb.Close(); err != nil {
+		return err
+	}
+
 	return nil
 }

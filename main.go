@@ -5,6 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/revandpratama/auth4me/config"
 	"github.com/revandpratama/auth4me/internal/app"
 	"github.com/rs/zerolog/log"
 )
@@ -27,7 +28,16 @@ func main() {
 
 	signal.Notify(server.shutdownCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	apps, err := app.NewApp(app.WithRESTServer(":8080"))
+	if err := config.LoadConfig(); err != nil {
+		log.Fatal().Err(err).Msg("failed to load config")
+	}
+
+	log.Info().Msgf("starting server on port %s", config.ENV.DB_HOST)
+
+	apps, err := app.NewApp(
+		app.WithDB(),
+		app.WithRESTServer(),
+	)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create app")
 	}
