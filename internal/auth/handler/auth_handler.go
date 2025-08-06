@@ -80,7 +80,7 @@ func (h *authHandler) LogoutHandler(c *fiber.Ctx) error {
 
 func (h *authHandler) GetUserHandler(c *fiber.Ctx) error {
 
-	userID := c.Locals("user_id")
+	userID := c.Locals("userID")
 	if userID == nil {
 		return c.Status(http.StatusUnauthorized).JSON(&Response{
 			Code:    http.StatusUnauthorized,

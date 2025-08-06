@@ -13,7 +13,7 @@ type User struct {
 	FullName  string `gorm:"size:255" json:"full_name"`
 	AvatarPath string `gorm:"size:500" json:"avatar_path"`
 
-	Providers []OAuthProvider `gorm:"foreignKey:UserID" json:"providers"`
+	Providers []OAuthProvider `gorm:"foreignKey:UserID" json:"providers,omitempty"`
 
 	EmailVerified      bool      `gorm:"default:false" json:"email_verified"`
 	VerificationToken  string    `gorm:"size:255" json:"-"`

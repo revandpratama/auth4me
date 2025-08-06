@@ -39,7 +39,12 @@ func (r *authRepository) GetUserByEmail(email string) (*entity.User, error) {
 	return &user, nil
 }
 func (r *authRepository) GetUserByID(id string) (*entity.User, error) {
-	return nil, nil
+	var user entity.User
+	err := r.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err // return actual DB error
+	}
+	return &user, nil
 }
 
 func (r *authRepository) IsEmailExists(email string) (bool, error) {
