@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/revandpratama/auth4me/config"
+	"github.com/revandpratama/auth4me/internal/auth"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,6 +25,11 @@ func WithRESTServer() Option {
 		fiberApp.Get("/", func(c *fiber.Ctx) error {
 			return c.SendString("Hello, World!")
 		})
+
+		api := fiberApp.Group("/api")
+
+		auth.InitAuthHandler(app.DB)
+		auth.InitAuthRoutes(api, auth.InitAuthHandler(app.DB))
 
 		app.fiberApp = fiberApp
 
