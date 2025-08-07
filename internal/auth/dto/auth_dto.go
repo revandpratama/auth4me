@@ -5,8 +5,9 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required,min=8"`
 }
 
-type LoginResponse struct {
-	Token string `json:"token"`
+type TokenResponse struct {
+	AccessToken string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
 type RegisterRequest struct {

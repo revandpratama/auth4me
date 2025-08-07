@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,13 +21,13 @@ type CustomClaims struct {
 
 func GenerateToken(user *entity.User, provider string, mfaCompleted bool) (string, error) {
 	claims := &CustomClaims{
-		Email: user.Email,
-		Role:  user.Role,
-		UserID: user.ID,
+		Email:        user.Email,
+		Role:         user.Role,
+		UserID:       user.ID,
 		MFACompleted: mfaCompleted,
-		Provider: provider,
+		Provider:     provider,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 5)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 30)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
@@ -53,6 +54,34 @@ func ValidateToken(tokenString string) (*CustomClaims, error) {
 	claims, ok := token.Claims.(*CustomClaims)
 	if !ok || !token.Valid {
 		return nil, err
+	}
+
+	return claims, nil
+}
+
+
+func ParseExpiredToken(tokenString string) (*CustomClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(t *jwt.Token) (any, error) {
+		return []byte(config.ENV.JWT_SECRET), nil
+	}, jwt.WithoutClaimsValidation())
+
+	if err != nil {
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*CustomClaims)
+	if !ok {
+		return nil, errors.New("invalid token claims")
+	}
+
+	if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		return nil, errors.New("unexpected signing method")
+	}
+
+	// Manually validate expiration if needed
+	// For refresh flow, we expect it to be expired
+	if claims.ExpiresAt == nil {
+		return nil, errors.New("missing exp in token")
 	}
 
 	return claims, nil

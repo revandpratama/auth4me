@@ -16,12 +16,14 @@ func InitAuthHandler(db *gorm.DB) handler.AuthHandler {
 }
 func InitAuthRoutes(api fiber.Router, handler handler.AuthHandler) {
 
+	publicAuth := api.Group("/auth")
+
+	publicAuth.Post("/login", handler.LoginHandler)
+	publicAuth.Post("/register", handler.RegisterHandler)
+	publicAuth.Post("/logout", handler.LogoutHandler)
+	publicAuth.Post("/refresh-token", handler.RefreshTokenHandler)
+
 	auth := api.Group("/auth")
-
-	auth.Post("/login", handler.LoginHandler)
-	auth.Post("/register", handler.RegisterHandler)
-	auth.Post("/logout", handler.LogoutHandler)
-
 	auth.Use(middleware.AuthMiddleware())
 	auth.Get("/user", handler.GetUserHandler)
 
