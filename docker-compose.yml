@@ -1,0 +1,23 @@
+
+
+services:
+  auth4me:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${REST_PORT}:${REST_PORT}"     # REST
+      # - "50051:50051"   # gRPC
+    # depends_on:
+      # - redis
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - JWT_SECRET=${JWT_SECRET}
+      - REST_PORT=${REST_PORT}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}

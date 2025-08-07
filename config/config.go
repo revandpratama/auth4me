@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"reflect"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	REST_PORT string `mapstructure:"REST_PORT"`
@@ -17,16 +21,31 @@ type Config struct {
 var ENV Config
 
 func LoadConfig() error {
-	viper.SetConfigName(".env")
-	viper.SetConfigType("env")
-	viper.AddConfigPath(".")
+	// * For local development
+	// viper.SetConfigName(".env")
+	// viper.SetConfigType("env")
+	// viper.AddConfigPath(".")
 
-	viper.SetDefault("REST_PORT", "8080")
+	// viper.SetDefault("REST_PORT", "8080")
 
-	if err := viper.ReadInConfig(); err != nil {
-		return err
+	// if err := viper.ReadInConfig(); err != nil {
+	// 	return err
+	// }
+
+	// * For docker environment
+	v := reflect.ValueOf(ENV)
+	t := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		// Get the struct tag, which is the name of the environment variable
+		key := t.Field(i).Tag.Get("mapstructure")
+		if key != "" {
+			// Bind the key to the corresponding environment variable
+			// e.g., tells Viper that the key "DB_HOST" should be read from the env var "DB_HOST"
+			if err := viper.BindEnv(key); err != nil {
+				return err
+			}
+		}
 	}
-
 	viper.AutomaticEnv()
 
 	// Unmarshal into the ENV variable
