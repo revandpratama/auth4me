@@ -9,14 +9,14 @@ type TokenData struct {
 	UserID       string `json:"user_id"`
 	Email        string `json:"email"`
 	Role         string `json:"role"`
-	Provider     string `json:"provider,omitempty"` // Optional if OAuth
-	SessionID    string `json:"sid,omitempty"`      // Optional, for token tracking
+	Provider     string `json:"provider,omitempty"` 
+	SessionID    string `json:"sid,omitempty"`      
 	MFACompleted bool   `json:"mfa,omitempty"`
 	ExpiresAt    time.Time
 }
 
 var refreshTokenStore = make(map[string]TokenData)
-var mu sync.RWMutex // for thread safety
+var mu sync.RWMutex
 
 func SaveRefreshToken(token string, data TokenData) {
 	mu.Lock()
