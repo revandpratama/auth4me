@@ -32,7 +32,7 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to load config")
 	}
 
-	log.Info().Msgf("starting server on port %s", config.ENV.DB_HOST)
+	log.Info().Msg("initializing server...")
 
 	apps, err := app.NewApp(
 		app.WithDB(),
@@ -48,7 +48,7 @@ func main() {
 		if err := apps.Stop(); err != nil {
 			log.Error().Err(err).Msgf("failed to stop app cleanly, cause: %v", err)
 		}
-		log.Info().Msg("server stopped")
+		log.Info().Msg("server stopped, goodbye!")
 	case err := <-server.errCh:
 		log.Error().Err(err).Msgf("failed to start server, cause: %v", err)
 	}

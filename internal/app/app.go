@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 )
 
@@ -37,6 +38,8 @@ func (a *App) Stop() error {
 	if err := sqlDb.Close(); err != nil {
 		return err
 	}
+
+	log.Info().Msg("resources cleaned up")
 
 	return nil
 }
