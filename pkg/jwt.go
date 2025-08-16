@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,6 +21,14 @@ type CustomClaims struct {
 }
 
 func GenerateToken(user *entity.User, provider string, mfaCompleted bool) (string, error) {
+
+	expirationSecond, err := strconv.Atoi(config.ENV.JWT_EXPIRATION_SECOND)
+	if err != nil || expirationSecond == 0 {
+		expirationSecond = 30
+	}
+
+	expirationTime := time.Now().Add(time.Second * time.Duration(expirationSecond))
+
 	claims := &CustomClaims{
 		Email:        user.Email,
 		Role:         user.Role,
@@ -27,7 +36,7 @@ func GenerateToken(user *entity.User, provider string, mfaCompleted bool) (strin
 		MFACompleted: mfaCompleted,
 		Provider:     provider,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Second * 30)),
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
@@ -58,7 +67,6 @@ func ValidateToken(tokenString string) (*CustomClaims, error) {
 
 	return claims, nil
 }
-
 
 func ParseExpiredToken(tokenString string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(t *jwt.Token) (any, error) {

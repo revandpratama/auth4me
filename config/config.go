@@ -9,7 +9,8 @@ import (
 type Config struct {
 	REST_PORT string `mapstructure:"REST_PORT"`
 
-	JWT_SECRET string `mapstructure:"JWT_SECRET"`
+	JWT_SECRET            string `mapstructure:"JWT_SECRET"`
+	JWT_EXPIRATION_SECOND string `mapstructure:"JWT_EXPIRATION_SECOND"`
 
 	DB_HOST     string `mapstructure:"DB_HOST"`
 	DB_PORT     string `mapstructure:"DB_PORT"`
