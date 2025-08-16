@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/revandpratama/auth4me/config"
@@ -27,6 +28,11 @@ func WithRESTServer() Option {
 		})
 
 		api := fiberApp.Group("/api")
+
+		api.Get("/test-700ms", func(c *fiber.Ctx) error {
+			time.Sleep(500 * time.Millisecond)
+			return c.SendString("Hello. 700ms delay!")
+		})
 
 		auth.InitAuthHandler(app.DB)
 		auth.InitAuthRoutes(api, auth.InitAuthHandler(app.DB))
