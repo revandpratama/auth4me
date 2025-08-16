@@ -30,7 +30,7 @@ func AuthMiddleware() func(c *fiber.Ctx) error {
 		c.Locals("userID", user.UserID)
 		c.Locals("provider", user.Provider)
 		c.Locals("email", user.Email)
-		c.Locals("role", user.Role)
+		c.Locals("role", user.RoleID)
 		c.Locals("sessionID", user.SessionID)
 		c.Locals("mfaCompleted", user.MFACompleted)
 

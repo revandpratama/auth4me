@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,23 +44,32 @@ func (u *authUsecase) Login(email string, password string) (string, string, erro
 	if user.MFAEnabled {
 		// TODO : Validate MFA
 	}
-
-	token, err := pkg.GenerateToken(user, "local", mfaCompleted)
+	log.Println("password validated")
+	permissions, err := u.repository.GetUserPermissionsByRoleID(user.RoleID)
 	if err != nil {
 		return "", "", err
 	}
+	log.Println("permissions fetched")
+
+	token, err := pkg.GenerateToken(user, "local", permissions, mfaCompleted)
+	if err != nil {
+		return "", "", err
+	}
+	log.Println("token generated")
 
 	token = fmt.Sprintf("Bearer %s", token)
 
 	refreshToken := uuid.NewString()
 	pkg.SaveRefreshToken(refreshToken, pkg.TokenData{
-		UserID: user.ID, 
-		Email: user.Email, 
-		Role: user.Role, 
-		Provider: "local",
+		UserID:       user.ID,
+		Email:        user.Email,
+		RoleID:       user.RoleID,
+		Provider:     "local",
 		MFACompleted: mfaCompleted,
-		ExpiresAt: time.Now().Add(time.Hour * 24)},
+		ExpiresAt:    time.Now().Add(time.Hour * 24)},
 	)
+
+	log.Println("refresh token saved")
 
 	return refreshToken, token, nil
 }
@@ -88,6 +98,7 @@ func (u *authUsecase) Register(registerRequest *dto.RegisterRequest) error {
 		Email:      registerRequest.Email,
 		Password:   registerRequest.Password,
 		FullName:   registerRequest.FullName,
+		RoleID:     registerRequest.RoleID,
 		AvatarPath: registerRequest.AvatarPath,
 	}
 
@@ -100,13 +111,13 @@ func (u *authUsecase) Register(registerRequest *dto.RegisterRequest) error {
 
 func (u *authUsecase) RefreshToken(refreshToken string, accessToken string) (string, string, error) {
 
-	//TODO : Validate access token
+	//Validate access token
 	claims, err := pkg.ParseExpiredToken(accessToken)
 	if err != nil {
 		return "", "", err
 	}
 
-	//TODO : Validate refresh token in redis
+	//Validate refresh token in redis
 	refreshTokenData, exists := pkg.GetRefreshToken(refreshToken)
 	if !exists || time.Now().After(refreshTokenData.ExpiresAt) {
 		return "", "", errors.New("refresh token expired")
@@ -116,26 +127,26 @@ func (u *authUsecase) RefreshToken(refreshToken string, accessToken string) (str
 		return "", "", errors.New("refresh token and access token user id does not match")
 	}
 
-	//TODO : Generate new access token
+	//Generate new access token
 
 	user := entity.User{
-		ID:    claims.UserID,
-		Email: claims.Email,
-		Role:  claims.Role,
+		ID:     claims.UserID,
+		Email:  claims.Email,
+		RoleID: claims.RoleID,
 	}
 
-	newAccessToken, err := pkg.GenerateToken(&user, claims.Provider, claims.MFACompleted)
+	newAccessToken, err := pkg.GenerateToken(&user, claims.Provider, claims.Permissions, claims.MFACompleted)
 	if err != nil {
 		return "", "", err
 	}
 
 	newAccessToken = fmt.Sprintf("Bearer %s", newAccessToken)
 
-	//TODO : Generate new refresh token
+	//Generate new refresh token
 	data := pkg.TokenData{
 		UserID:       claims.UserID,
 		Email:        claims.Email,
-		Role:         claims.Role,
+		RoleID:       claims.RoleID,
 		Provider:     claims.Provider,
 		SessionID:    claims.SessionID,
 		MFACompleted: claims.MFACompleted,

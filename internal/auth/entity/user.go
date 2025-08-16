@@ -7,10 +7,10 @@ import (
 )
 
 type User struct {
-	ID        string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	Email     string `gorm:"uniqueIndex;not null" json:"email"`
-	Password  string `gorm:"" json:"-"` // hashed password; can be empty for OAuth users
-	FullName  string `gorm:"size:255" json:"full_name"`
+	ID         string `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	Email      string `gorm:"uniqueIndex;not null" json:"email"`
+	Password   string `gorm:"" json:"-"` // hashed password; can be empty for OAuth users
+	FullName   string `gorm:"size:255" json:"full_name"`
 	AvatarPath string `gorm:"size:500" json:"avatar_path"`
 
 	Providers []OAuthProvider `gorm:"foreignKey:UserID" json:"providers,omitempty"`
@@ -20,9 +20,10 @@ type User struct {
 	VerificationSentAt time.Time `json:"-"`
 
 	MFAEnabled bool   `gorm:"default:false" json:"mfa_enabled"`
-	MFASecret  string `gorm:"size:255" json:"-"` 
+	MFASecret  string `gorm:"size:255" json:"-"`
 
-	Role string `gorm:"default:'user'" json:"role"` 
+	RoleID uint `gorm:"not null" json:"role_id"`
+	Role   Role `gorm:"foreignKey:RoleID;references:ID"`
 
 	// Timestamps
 	CreatedAt time.Time      `json:"created_at"`

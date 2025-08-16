@@ -8,11 +8,11 @@ import (
 )
 
 type AuthRepository interface {
-	Login(email string, password string) error
 	GetUserByEmail(email string) (*entity.User, error)
 	GetUserByID(id string) (*entity.User, error)
 	IsEmailExists(email string) (bool, error)
 	CreateUser(user *entity.User) error
+	GetUserPermissionsByRoleID(id uint) ([]entity.Permission, error)
 }
 
 type authRepository struct {
@@ -23,10 +23,6 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 	return &authRepository{
 		db: db,
 	}
-}
-
-func (r *authRepository) Login(email string, password string) error {
-	return nil
 }
 
 func (r *authRepository) GetUserByEmail(email string) (*entity.User, error) {
@@ -40,9 +36,9 @@ func (r *authRepository) GetUserByEmail(email string) (*entity.User, error) {
 }
 func (r *authRepository) GetUserByID(id string) (*entity.User, error) {
 	var user entity.User
-	err := r.db.Where("id = ?", id).First(&user).Error
+	err := r.db.Model(&entity.User{}).Preload("Role.Permissions").First(&user, "id = ?", id).Error
 	if err != nil {
-		return nil, err // return actual DB error
+		return nil, err
 	}
 	return &user, nil
 }
@@ -61,4 +57,14 @@ func (r *authRepository) IsEmailExists(email string) (bool, error) {
 
 func (r *authRepository) CreateUser(user *entity.User) error {
 	return r.db.Create(user).Error
+}
+
+func (r *authRepository) GetUserPermissionsByRoleID(roleID uint) ([]entity.Permission, error) {
+	var permissions []entity.Permission
+
+	err := r.db.Joins("JOIN auth4me.role_permissions ON auth4me.role_permissions.permission_id = auth4me.permissions.id").Where("auth4me.role_permissions.role_id = ?", roleID).Find(&permissions).Error
+	if err != nil {
+		return nil, err // return actual DB error
+	}
+	return permissions, nil
 }

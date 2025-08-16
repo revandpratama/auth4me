@@ -11,16 +11,17 @@ import (
 )
 
 type CustomClaims struct {
-	UserID       string `json:"user_id"`
-	Email        string `json:"email"`
-	Role         string `json:"role"`
-	Provider     string `json:"provider,omitempty"` // Optional if OAuth
-	SessionID    string `json:"sid,omitempty"`      // Optional, for token tracking
-	MFACompleted bool   `json:"mfa,omitempty"`
+	UserID       string              `json:"user_id"`
+	Email        string              `json:"email"`
+	RoleID       uint                `json:"role_id"`
+	Permissions  []entity.Permission `json:"permissions"`
+	Provider     string              `json:"provider,omitempty"` // Optional if OAuth
+	SessionID    string              `json:"sid,omitempty"`      // Optional, for token tracking
+	MFACompleted bool                `json:"mfa,omitempty"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(user *entity.User, provider string, mfaCompleted bool) (string, error) {
+func GenerateToken(user *entity.User, provider string, permissions []entity.Permission, mfaCompleted bool) (string, error) {
 
 	expirationSecond, err := strconv.Atoi(config.ENV.JWT_EXPIRATION_SECOND)
 	if err != nil || expirationSecond == 0 {
@@ -31,7 +32,7 @@ func GenerateToken(user *entity.User, provider string, mfaCompleted bool) (strin
 
 	claims := &CustomClaims{
 		Email:        user.Email,
-		Role:         user.Role,
+		RoleID:       user.RoleID,
 		UserID:       user.ID,
 		MFACompleted: mfaCompleted,
 		Provider:     provider,

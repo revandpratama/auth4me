@@ -8,9 +8,9 @@ import (
 type TokenData struct {
 	UserID       string `json:"user_id"`
 	Email        string `json:"email"`
-	Role         string `json:"role"`
-	Provider     string `json:"provider,omitempty"` 
-	SessionID    string `json:"sid,omitempty"`      
+	RoleID       uint   `json:"role_id"`
+	Provider     string `json:"provider,omitempty"`
+	SessionID    string `json:"sid,omitempty"`
 	MFACompleted bool   `json:"mfa,omitempty"`
 	ExpiresAt    time.Time
 }
