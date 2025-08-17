@@ -35,6 +35,7 @@ func GenerateToken(user *entity.User, provider string, permissions []entity.Perm
 		RoleID:       user.RoleID,
 		UserID:       user.ID,
 		MFACompleted: mfaCompleted,
+		Permissions:  permissions,
 		Provider:     provider,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
