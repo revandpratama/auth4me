@@ -34,8 +34,11 @@ func WithRESTServer() Option {
 			return c.SendString("Hello. 700ms delay!")
 		})
 
-		auth.InitAuthHandler(app.DB)
-		auth.InitAuthRoutes(api, auth.InitAuthHandler(app.DB))
+		authHandler := auth.InitAuthHandler(app.DB)
+		auth.InitAuthRoutes(api, authHandler)
+
+		rbacHandler := auth.InitRBACHandler(app.DB)
+		auth.InitRBACRoutes(api, rbacHandler)
 
 		app.fiberApp = fiberApp
 

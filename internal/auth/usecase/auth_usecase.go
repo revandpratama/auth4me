@@ -45,13 +45,13 @@ func (u *authUsecase) Login(email string, password string) (string, string, erro
 		// TODO : Validate MFA
 	}
 	log.Println("password validated")
-	permissions, err := u.repository.GetUserPermissionsByRoleID(user.RoleID)
-	if err != nil {
-		return "", "", err
-	}
-	log.Println("permissions fetched")
+	// permissions, err := u.repository.GetUserPermissionsByRoleID(user.RoleID)
+	// if err != nil {
+	// 	return "", "", err
+	// }
+	// log.Println("permissions fetched")
 
-	token, err := pkg.GenerateToken(user, "local", permissions, mfaCompleted)
+	token, err := pkg.GenerateToken(user, "local", user.Role.Permissions, mfaCompleted)
 	if err != nil {
 		return "", "", err
 	}

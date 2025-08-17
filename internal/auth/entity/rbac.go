@@ -18,8 +18,8 @@ func (Role) TableName() string {
 type Permission struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Name      string    `gorm:"uniqueIndex;not null" json:"name"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 }
 
 func (Permission) TableName() string {
@@ -27,8 +27,8 @@ func (Permission) TableName() string {
 }
 
 type RolePermission struct {
-	RoleID       string `gorm:"type:uuid;index" json:"role_id"`
-	PermissionID string `gorm:"type:uuid;index" json:"permission_id"`
+	RoleID       uint `gorm:"type:uuid;index" json:"role_id"`
+	PermissionID uint `gorm:"type:uuid;index" json:"permission_id"`
 }
 
 func (RolePermission) TableName() string {

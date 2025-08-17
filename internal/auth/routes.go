@@ -28,3 +28,36 @@ func InitAuthRoutes(api fiber.Router, handler handler.AuthHandler) {
 	auth.Get("/user", handler.GetUserHandler)
 
 }
+
+func InitRBACHandler(db *gorm.DB) handler.RBACHandler {
+	repo := repository.NewRBACRepository(db)
+	usecase := usecase.NewRBACUsecase(repo)
+	return handler.NewRBACHandler(usecase)
+}
+
+func InitRBACRoutes(api fiber.Router, handler handler.RBACHandler) {
+
+	rbac := api.Group("/rbac")
+
+	rbac.Use(middleware.AuthMiddleware())
+
+	rbac.Get("/roles", handler.GetAllRoles)
+	rbac.Get("/roles/:id", handler.GetRoleByID)
+	rbac.Post("/roles", handler.CreateRole)
+	rbac.Put("/roles/:id", handler.UpdateRole)
+	rbac.Delete("/roles/:id", handler.DeleteRole)
+
+	rbac.Get("/permissions", handler.GetAllPermissions)
+	rbac.Get("/permissions/:id", handler.GetPermissionByID)
+	rbac.Post("/permissions", handler.CreatePermission)
+	rbac.Put("/permissions/:id", handler.UpdatePermission)
+	rbac.Delete("/permissions/:id", handler.DeletePermission)
+
+	rbac.Get("/role-permissions", handler.GetAllRolePermissions)
+	rbac.Get("/role-permissions/roles/:roleID", handler.GetRolePermissionsByRoleID)
+	rbac.Get("/role-permissions/permissions/:permissionID", handler.GetRolePermissionsByPermissionID)
+	rbac.Post("/role-permissions", handler.CreateRolePermission)
+	rbac.Put("/role-permissions/:id", handler.UpdateRolePermission)
+	rbac.Delete("/role-permissions/:id", handler.DeleteRolePermission)
+
+}

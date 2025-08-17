@@ -28,7 +28,7 @@ func NewAuthRepository(db *gorm.DB) AuthRepository {
 func (r *authRepository) GetUserByEmail(email string) (*entity.User, error) {
 	var user entity.User
 
-	err := r.db.Where("email = ?", email).First(&user).Error
+	err := r.db.Model(&entity.User{}).Preload("Role.Permissions").First(&user, "email = ?", email).Error
 	if err != nil {
 		return nil, err // return actual DB error
 	}
