@@ -6,6 +6,7 @@ import (
 	"github.com/revandpratama/auth4me/internal/auth/repository"
 	"github.com/revandpratama/auth4me/internal/auth/usecase"
 	"github.com/revandpratama/auth4me/internal/middleware"
+	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
 
@@ -59,5 +60,21 @@ func InitRBACRoutes(api fiber.Router, handler handler.RBACHandler) {
 	rbac.Post("/role-permissions", handler.CreateRolePermission)
 	rbac.Put("/role-permissions/:id", handler.UpdateRolePermission)
 	rbac.Delete("/role-permissions/:id", handler.DeleteRolePermission)
+
+}
+
+func InitOauthHandler(db *gorm.DB, oauthCfg *oauth2.Config) handler.OAuthHandler {
+	oauthRepo := repository.NewOAuthRepository(db)
+	authRepo := repository.NewAuthRepository(db)
+	usecase := usecase.NewOAuthUsecase(oauthCfg, authRepo, oauthRepo)
+	return handler.NewOAuthHandler(usecase)
+}
+
+func InitOauthRoutes(api fiber.Router, handler handler.OAuthHandler) {
+
+	oauth := api.Group("/oauth")
+
+	oauth.Get("/google", handler.GoogleLogin)
+	oauth.Get("/google/callback", handler.GoogleOAuthCallback)
 
 }

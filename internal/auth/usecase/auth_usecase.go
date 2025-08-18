@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -57,8 +56,6 @@ func (u *authUsecase) Login(email string, password string) (string, string, erro
 	}
 	log.Println("token generated")
 
-	token = fmt.Sprintf("Bearer %s", token)
-
 	refreshToken := uuid.NewString()
 	pkg.SaveRefreshToken(refreshToken, pkg.TokenData{
 		UserID:       user.ID,
@@ -102,7 +99,7 @@ func (u *authUsecase) Register(registerRequest *dto.RegisterRequest) error {
 		AvatarPath: registerRequest.AvatarPath,
 	}
 
-	if err := u.repository.CreateUser(&newUser); err != nil {
+	if _, err := u.repository.CreateUser(&newUser); err != nil {
 		return err
 	}
 
@@ -139,8 +136,6 @@ func (u *authUsecase) RefreshToken(refreshToken string, accessToken string) (str
 	if err != nil {
 		return "", "", err
 	}
-
-	newAccessToken = fmt.Sprintf("Bearer %s", newAccessToken)
 
 	//Generate new refresh token
 	data := pkg.TokenData{

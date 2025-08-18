@@ -9,6 +9,7 @@ import (
 	"github.com/revandpratama/auth4me/config"
 	"github.com/revandpratama/auth4me/internal/auth"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/oauth2"
 )
 
 func WithRESTServer() Option {
@@ -39,6 +40,23 @@ func WithRESTServer() Option {
 
 		rbacHandler := auth.InitRBACHandler(app.DB)
 		auth.InitRBACRoutes(api, rbacHandler)
+
+		oauthConfig := &oauth2.Config{
+			ClientID:     config.ENV.GOOGLE_CLIENT_ID,
+			ClientSecret: config.ENV.GOOGLE_CLIENT_SECRET,
+			Scopes: []string{
+				"https://www.googleapis.com/auth/userinfo.email",
+				"https://www.googleapis.com/auth/userinfo.profile",
+			},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://accounts.google.com/o/oauth2/auth",
+				TokenURL: "https://oauth2.googleapis.com/token",
+			},
+			RedirectURL: config.ENV.GOOGLE_REDIRECT_URL,
+			// RedirectURL: "http://localhost:3000/auth/google/callback",
+		}
+		oauthHandler := auth.InitOauthHandler(app.DB, oauthConfig)
+		auth.InitOauthRoutes(api, oauthHandler)
 
 		app.fiberApp = fiberApp
 

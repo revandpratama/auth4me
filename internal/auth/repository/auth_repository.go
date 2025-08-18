@@ -11,8 +11,9 @@ type AuthRepository interface {
 	GetUserByEmail(email string) (*entity.User, error)
 	GetUserByID(id string) (*entity.User, error)
 	IsEmailExists(email string) (bool, error)
-	CreateUser(user *entity.User) error
+	CreateUser(user *entity.User) (*entity.User, error)
 	GetUserPermissionsByRoleID(id uint) ([]entity.Permission, error)
+	UpdateUser(user *entity.User) error
 }
 
 type authRepository struct {
@@ -55,8 +56,11 @@ func (r *authRepository) IsEmailExists(email string) (bool, error) {
 	return true, nil
 }
 
-func (r *authRepository) CreateUser(user *entity.User) error {
-	return r.db.Create(user).Error
+func (r *authRepository) CreateUser(user *entity.User) (*entity.User, error) {
+    if err := r.db.Create(user).Error; err != nil {
+        return nil, err
+    }
+    return user, nil
 }
 
 func (r *authRepository) GetUserPermissionsByRoleID(roleID uint) ([]entity.Permission, error) {
@@ -67,4 +71,7 @@ func (r *authRepository) GetUserPermissionsByRoleID(roleID uint) ([]entity.Permi
 		return nil, err // return actual DB error
 	}
 	return permissions, nil
+}
+func (r *authRepository) UpdateUser(user *entity.User) error {
+	return r.db.Model(&entity.User{}).Where("id = ?", user.ID).Updates(user).Error
 }

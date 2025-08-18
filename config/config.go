@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/spf13/viper"
@@ -12,6 +14,10 @@ type Config struct {
 	JWT_SECRET            string `mapstructure:"JWT_SECRET"`
 	JWT_EXPIRATION_SECOND string `mapstructure:"JWT_EXPIRATION_SECOND"`
 
+	GOOGLE_CLIENT_ID     string `mapstructure:"GOOGLE_CLIENT_ID"`
+	GOOGLE_CLIENT_SECRET string `mapstructure:"GOOGLE_CLIENT_SECRET"`
+	GOOGLE_REDIRECT_URL  string `mapstructure:"GOOGLE_REDIRECT_URL"`
+
 	DB_HOST     string `mapstructure:"DB_HOST"`
 	DB_PORT     string `mapstructure:"DB_PORT"`
 	DB_USER     string `mapstructure:"DB_USER"`
@@ -22,16 +28,41 @@ type Config struct {
 var ENV Config
 
 func LoadConfig() error {
-	// * For local development
-	// viper.SetConfigName(".env")
-	// viper.SetConfigType("env")
-	// viper.AddConfigPath(".")
 
-	// viper.SetDefault("REST_PORT", "8080")
-
-	// if err := viper.ReadInConfig(); err != nil {
-	// 	return err
+	// env := os.Getenv("APP_ENVIRONMENT")
+	// log.Println("APP_ENVIRONMENT: ", env)
+	// if env == "" {
+	// 	env = "dev"
 	// }
+
+	// if env == "dev" {
+	// 	// Load local .env file for development
+	// 	viper.SetConfigName(".env")
+	// 	viper.SetConfigType("env")
+	// 	viper.AddConfigPath(".")
+	// 	viper.SetDefault("REST_PORT", "8080")
+
+	// 	if err := viper.ReadInConfig(); err != nil {
+	// 		return fmt.Errorf("error reading config file: %w", err)
+	// 	}
+	// }
+
+	// * For local development
+	viper.SetConfigName(".env")
+	viper.SetConfigType("env")
+	viper.AddConfigPath(".")
+
+	viper.SetDefault("REST_PORT", "8080")
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; ignore error if desired
+			log.Println("No .env file found, relying on runtime environment variables.")
+		} else {
+			// Config file was found but another error was produced
+			return fmt.Errorf("error reading config file: %w", err)
+		}
+	}
 
 	// * For docker environment
 	v := reflect.ValueOf(ENV)
