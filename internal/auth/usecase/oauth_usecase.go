@@ -147,7 +147,7 @@ func (u *oauthUsecase) GoogleOAuthCallback(code string) (string, string, error) 
 		// TODO : Validate MFA
 	}
 
-	accessToken, err := pkg.GenerateToken(userToTokenize, "google", userToTokenize.Role.Permissions, mfaCompleted)
+	accessToken, err := pkg.GenerateToken(userToTokenize, "google", mfaCompleted)
 	if err != nil {
 		return "", "", fmt.Errorf("generate token failed: %w", err)
 	}

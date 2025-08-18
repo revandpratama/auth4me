@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -14,14 +15,13 @@ type CustomClaims struct {
 	UserID       string              `json:"user_id"`
 	Email        string              `json:"email"`
 	RoleID       uint                `json:"role_id"`
-	Permissions  []entity.Permission `json:"permissions"`
 	Provider     string              `json:"provider,omitempty"` // Optional if OAuth
 	SessionID    string              `json:"sid,omitempty"`      // Optional, for token tracking
 	MFACompleted bool                `json:"mfa,omitempty"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(user *entity.User, provider string, permissions []entity.Permission, mfaCompleted bool) (string, error) {
+func GenerateToken(user *entity.User, provider string, mfaCompleted bool) (string, error) {
 
 	expirationSecond, err := strconv.Atoi(config.ENV.JWT_EXPIRATION_SECOND)
 	if err != nil || expirationSecond == 0 {
@@ -35,7 +35,6 @@ func GenerateToken(user *entity.User, provider string, permissions []entity.Perm
 		RoleID:       user.RoleID,
 		UserID:       user.ID,
 		MFACompleted: mfaCompleted,
-		Permissions:  permissions,
 		Provider:     provider,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -50,6 +49,8 @@ func GenerateToken(user *entity.User, provider string, permissions []entity.Perm
 	if err != nil {
 		return "", err
 	}
+
+	tokenString = fmt.Sprintf("Bearer %s", tokenString)
 
 	return tokenString, nil
 }

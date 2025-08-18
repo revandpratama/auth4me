@@ -50,7 +50,7 @@ func (u *authUsecase) Login(email string, password string) (string, string, erro
 	// }
 	// log.Println("permissions fetched")
 
-	token, err := pkg.GenerateToken(user, "local", user.Role.Permissions, mfaCompleted)
+	token, err := pkg.GenerateToken(user, "local", mfaCompleted)
 	if err != nil {
 		return "", "", err
 	}
@@ -132,7 +132,7 @@ func (u *authUsecase) RefreshToken(refreshToken string, accessToken string) (str
 		RoleID: claims.RoleID,
 	}
 
-	newAccessToken, err := pkg.GenerateToken(&user, claims.Provider, claims.Permissions, claims.MFACompleted)
+	newAccessToken, err := pkg.GenerateToken(&user, claims.Provider, claims.MFACompleted)
 	if err != nil {
 		return "", "", err
 	}
