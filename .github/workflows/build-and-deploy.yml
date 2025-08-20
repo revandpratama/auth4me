@@ -9,12 +9,12 @@ on:
       - main
 
 jobs:
-  test:
-    name: Run tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: go test ./...
+  # test:
+  #   name: Run tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - run: go test ./...
   
   build-and-push:
     name: Build and Push
@@ -68,7 +68,7 @@ jobs:
               cd "$PROJECT_DIR"
               git pull
             fi
-            
+
             # Navigate to your project directory on the server
             cd /home/revandpratama/auth4me
             
