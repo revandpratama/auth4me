@@ -1,0 +1,106 @@
+
+
+services:
+  auth4me:
+    container_name: auth4me
+    image: ghcr.io/revandpratama/auth4me:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # ports:
+      # - "${REST_PORT}:${REST_PORT}"     # REST
+      # - "50051:50051"   # gRPC
+    # depends_on:
+      # - redis
+    environment:
+      - APP_ENVIRONMENT=${APP_ENVIRONMENT}
+      - JWT_SECRET=${JWT_SECRET}
+      - REST_PORT=${REST_PORT}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URL=${GOOGLE_REDIRECT_URL}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.revandpratama.site`)"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      # - "traefik.http.routers.auth.entrypoints=web"
+      # - "traefik.http.routers.auth.tls.certresolver=myresolver"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.services.auth.loadbalancer.server.port=8080"
+    expose:
+      - "8080"
+    restart: unless-stopped
+
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    command:
+      - "--api.dashboard=true"                  # Enable Traefik dashboard
+      - "--api.insecure=true"
+      - "--providers.docker=true"               # Enable Docker provider
+      - "--entrypoints.web.address=:80"         # HTTP
+      - "--entrypoints.websecure.address=:443"  # HTTPS
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      # - "--certificatesresolvers.myresolver.acme.email=you@localhost.com"
+      # - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "443:443"
+    labels:
+      - "traefik.http.routers.api.rule=Host(`traefik.revandpratama.site`)"
+      - "traefik.http.routers.api.service=api@internal"
+      # - "traefik.http.routers.api.middlewares=traefik-auth"
+      # - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$10$$7..flBNGSwshAZik3ENoEu3Hfo.Kwjj3x7OkVkV1tJg9ODVKORDAW"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # - "./letsencrypt:/letsencrypt"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    # ports:
+    #   - "9090:9090"
+    restart: unless-stopped
+
+
+  grafana:
+    image: grafana/grafana:12.1.1-ubuntu
+    container_name: grafana
+    # ports:
+    #   - "3000:3000"
+    expose:
+      - "3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=password
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`metric.revandpratama.site`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana-http.rule=Host(`metric.revandpratama.site`)"
+      - "traefik.http.routers.grafana-http.entrypoints=web"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    volumes:
+      - grafana-storage:/var/lib/grafana
+volumes:
+  grafana-storage:

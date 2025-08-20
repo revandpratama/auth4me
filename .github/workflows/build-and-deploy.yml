@@ -55,6 +55,20 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_KEY }}
           script: |
+
+            PROJECT_DIR="/home/revandpratama/auth4me"
+          
+            # Check if the directory exists. If not, clone the repo. If it does, pull the latest changes.
+            if [ ! -d "$PROJECT_DIR" ] ; then
+              echo "Cloning repository..."
+              git clone https://github.com/${{ github.repository }}.git "$PROJECT_DIR"
+              cd "$PROJECT_DIR"
+            else
+              echo "Pulling latest changes..."
+              cd "$PROJECT_DIR"
+              git pull
+            fi
+            
             # Navigate to your project directory on the server
             cd /home/revandpratama/auth4me
             
@@ -65,8 +79,8 @@ jobs:
             export OWNER=${{ github.repository_owner }}
             
             # Use the production compose file
-            docker-compose -f docker-compose.yml pull
-            docker-compose -f docker-compose.yml up -d
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
             
             # Optional: Clean up old, unused Docker images to save space
             docker image prune -af
