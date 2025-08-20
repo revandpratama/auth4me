@@ -48,7 +48,7 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=you@localhost.com"
+      - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--metrics.prometheus=true"
       - "--metrics.prometheus.addEntryPointsLabels=true"
@@ -65,7 +65,7 @@ services:
       # - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$10$$7..flBNGSwshAZik3ENoEu3Hfo.Kwjj3x7OkVkV1tJg9ODVKORDAW"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
+      - "letsencrypt:/letsencrypt"
     restart: unless-stopped
 
   prometheus:
