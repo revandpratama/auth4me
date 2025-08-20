@@ -27,9 +27,6 @@ services:
       - "traefik.http.routers.auth.entrypoints=websecure"
       - "traefik.http.routers.auth.tls.certresolver=myresolver"
       - "traefik.http.routers.auth.tls=true"
-
-      - "traefik.http.routers.auth-http.rule=Host(`auth.${URL}`)"
-      - "traefik.http.routers.auth-http.entrypoints=web"
       - "traefik.http.services.auth.loadbalancer.server.port=${REST_PORT}"
     expose:
       - "${REST_PORT}"
@@ -40,6 +37,7 @@ services:
     container_name: traefik
     command:
       - "--api.dashboard=true"                  # Enable Traefik dashboard
+      - "--log.level=DEBUG" 
       # - "--api.insecure=true"
       - "--providers.docker=true"               # Enable Docker provider
       - "--entrypoints.web.address=:80"         # HTTP
