@@ -4,11 +4,6 @@ services:
   auth4me:
     container_name: auth4me
     image: ghcr.io/revandpratama/auth4me:latest
-    # ports:
-      # - "${REST_PORT}:${REST_PORT}"     # REST
-      # - "50051:50051"   # gRPC
-    # depends_on:
-      # - redis
     environment:
       - APP_ENVIRONMENT=${APP_ENVIRONMENT}
       - JWT_SECRET=${JWT_SECRET}
@@ -23,13 +18,17 @@ services:
       - DB_NAME=${DB_NAME}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.auth.rule=Host(`auth.${URL}`)"
-      - "traefik.http.routers.auth.entrypoints=websecure"
-      - "traefik.http.routers.auth.tls.certresolver=myresolver"
-      - "traefik.http.routers.auth.tls=true"
-      - "traefik.http.services.auth.loadbalancer.server.port=${REST_PORT}"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.auth-secure.rule=Host(`auth.${URL}`)"
+      - "traefik.http.routers.auth-secure.entrypoints=websecure"
+      - "traefik.http.routers.auth-secure.service=auth-service"
+      - "traefik.http.routers.auth-secure.tls.certresolver=myresolver"
+
+      - "traefik.http.services.auth-service.loadbalancer.server.port=${REST_PORT}"
     expose:
       - "${REST_PORT}"
+    networks:
+      - proxy
     restart: unless-stopped
 
   traefik:
@@ -38,16 +37,17 @@ services:
     command:
       - "--api.dashboard=true"                  # Enable Traefik dashboard
       - "--log.level=DEBUG" 
-      # - "--api.insecure=true"
+      
       - "--providers.docker=true"               # Enable Docker provider
       - "--entrypoints.web.address=:80"         # HTTP
       - "--entrypoints.websecure.address=:443"  # HTTPS
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+
       - "--metrics.prometheus=true"
       - "--metrics.prometheus.addEntryPointsLabels=true"
       - "--metrics.prometheus.addRoutersLabels=true"
@@ -56,11 +56,11 @@ services:
       - "80:80"
       - "8080:8080"
       - "443:443"
+    networks:
+      - proxy
     labels:
       - "traefik.http.routers.api.rule=Host(`traefik.${URL}`)"
       - "traefik.http.routers.api.service=api@internal"
-      # - "traefik.http.routers.api.middlewares=traefik-auth"
-      # - "traefik.http.middlewares.traefik-auth.basicauth.users=admin:$$2y$$10$$7..flBNGSwshAZik3ENoEu3Hfo.Kwjj3x7OkVkV1tJg9ODVKORDAW"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "letsencrypt:/letsencrypt"
@@ -73,6 +73,8 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - proxy
     # ports:
     #   - "9090:9090"
     restart: unless-stopped
@@ -90,17 +92,25 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=password
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`metric.${URL}`)"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.tls=true"
-      - "traefik.http.routers.grafana-http.rule=Host(`metric.${URL}`)"
-      - "traefik.http.routers.grafana-http.entrypoints=web"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.grafana-secure.rule=Host(`metric.${URL}`)"
+      - "traefik.http.routers.grafana-secure.entrypoints=websecure"
+      - "traefik.http.routers.grafana-secure.service=grafana-service"
+      - "traefik.http.routers.grafana-secure.tls.certresolver=myresolver"
+      - "traefik.http.services.grafana-service.loadbalancer.server.port=3000"
     depends_on:
       - prometheus
     restart: unless-stopped
     volumes:
       - grafana-storage:/var/lib/grafana
+    networks:
+      - proxy
+
+
 volumes:
   grafana-storage:
   letsencrypt:
+
+networks:
+  proxy:
+    name: proxy
